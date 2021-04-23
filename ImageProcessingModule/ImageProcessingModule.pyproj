@@ -54,6 +54,8 @@
     <Folder Include="static_files\face_images\" />
     <Folder Include="ImageProcessingModule\" />
     <Folder Include="static_files\" />
+    <Folder Include="static_files\items\" />
+    <Folder Include="static_files\output_images\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
   <!-- Specify pre- and post-build commands in the BeforeBuild and 
