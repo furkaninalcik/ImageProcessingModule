@@ -1,1 +1,4 @@
-Flask~=1.1
+uwsgi==2.0.19.1
+flask==1.1.2
+google-cloud-storage==1.37.1
+Pillow==8.2.0  

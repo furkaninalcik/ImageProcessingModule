@@ -6,11 +6,16 @@ import os
 import posixpath
 from PIL import Image
 
+from flask import Flask
 from flask import render_template
+from flask import current_app
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+Static_Directory_Path = Flask.static_folder
+
+print("PATH :" + BASE_DIR)
 
 def download_blob(bucket_name, background_source_blob_name,  item_source_blob_name, bg_destination_file_name , item_destination_file_name):
     """Downloads a blob from the bucket."""
@@ -26,10 +31,12 @@ def download_blob(bucket_name, background_source_blob_name,  item_source_blob_na
     # any content from Google Cloud Storage. As we don't need additional data,
     # using `Bucket.blob` is preferred here.
     BG_blob = bucket.blob(background_source_blob_name)
-    BG_blob.download_to_filename(bg_destination_file_name)
+    BG_blob.download_to_filename("/tmp/bg_destination_file_name")
 
     item_blob = bucket.blob(item_source_blob_name)
-    item_blob.download_to_filename(item_destination_file_name)
+    item_blob.download_to_filename("/tmp/item_destination_file_name")
+
+    combine_tmp_images()
 
     print(
         "Blob {} downloaded to {}.".format(
@@ -53,7 +60,8 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
 
-    blob.upload_from_filename(source_file_name)
+    #blob.upload_from_filename(source_file_name)
+    blob.upload_from_filename("/tmp/final_image_directory.jpg")
 
     print(
         "File {} uploaded to {}.".format(
@@ -70,16 +78,16 @@ def create():
     background_source_blob_name = "input_images/harry_potter.jpg"
     item_source_blob_name = "items/glasses1.png"
 
-    bg_destination_file_name = os.path.join(BASE_DIR, "ImageProcessingModule/static/face_images/background_image.jpg")
-    item_destination_file_name = os.path.join(BASE_DIR, "ImageProcessingModule/static/items/item1.png")
+    bg_destination_file_name = os.path.join(BASE_DIR, "tmp/static/face_images/background_image.jpg")
+    item_destination_file_name = os.path.join(BASE_DIR, "static/items/item1.png")
 
-    final_image_directory = os.path.join(BASE_DIR, "ImageProcessingModule/static/output_images/final.png")
-    destination_blob_name = "output_images/final_image.jpg"
+    final_image_directory = os.path.join(BASE_DIR, "static/output_images/final.png")
+    destination_blob_name = "output_images/final_image"
     
     
     download_blob(bucket_name, background_source_blob_name,  item_source_blob_name, bg_destination_file_name , item_destination_file_name)
 
-    combine_images(item_destination_file_name , bg_destination_file_name , final_image_directory)
+    #combine_images(item_destination_file_name , bg_destination_file_name , final_image_directory)
 
     upload_blob(bucket_name, final_image_directory, destination_blob_name)
 
@@ -108,3 +116,15 @@ def combine_images(item_image_path, bg_image_path, final_image_directory):
 
 
     #return null
+
+def combine_tmp_images():
+
+    bg = Image.open("/tmp/bg_destination_file_name")
+    item = Image.open("/tmp/item_destination_file_name")
+    new_item_size = (370, 125)
+    item = item.resize(new_item_size).rotate(20, expand = True)
+    back_im = bg.copy()
+    back_im.paste(item, (260,340) , item)
+
+    back_im.show()
+    back_im.save("/tmp/final_image_directory.jpg", quality=95)
