@@ -3,7 +3,7 @@ This script runs the application using a development server.
 It contains the definition of routes and views for the application.
 """
 
-from flask import Flask
+from flask import Flask , request
 from flask import render_template
 from PIL import Image
 
@@ -21,11 +21,20 @@ def hello():
     return "Welcome to the Image Processing Module developed with Flask - Python"
 
 
-@app.route('/create_image')
+@app.route('/create_image', methods=['POST'])
 def image_creation():
     """Combines images"""
-    create_image.create()
-    return render_template('index.html')
+    #faceAnnotations = request.args.get("faceAnnotations")
+    #faceAnnotations = request.args["faceAnnotations"]
+    faceAnnotations = request.get_json()
+    print('FACE 0 : ')
+    print(faceAnnotations['face0'])
+
+    
+
+    return  create_image.create(faceAnnotations)
+    
+    #return render_template('index.html')
     #return "Welcome to the Image Processing Module developed with Flask - Python"
 
 
