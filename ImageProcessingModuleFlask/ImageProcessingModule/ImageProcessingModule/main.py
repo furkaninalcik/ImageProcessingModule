@@ -3,7 +3,7 @@ This script runs the application using a development server.
 It contains the definition of routes and views for the application.
 """
 
-from flask import Flask , request
+from flask import Flask , request, json
 from flask import render_template
 from PIL import Image
 
@@ -27,8 +27,10 @@ def image_creation():
     #faceAnnotations = request.args.get("faceAnnotations")
     #faceAnnotations = request.args["faceAnnotations"]
     faceAnnotations = request.get_json()
-    print('FACE 0 : ')
-    print(faceAnnotations['face0'])
+    #faceAnnotations = json.load(request.get_json())
+
+    #print('FACE 0 : ')
+    #print(faceAnnotations['face0'])
 
     
 

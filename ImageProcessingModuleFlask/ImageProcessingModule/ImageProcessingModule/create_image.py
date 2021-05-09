@@ -78,14 +78,14 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 def create(faceAnnotations):
 
     bucket_name = "image-processing-module.appspot.com"
-    background_source_blob_name = "input_images/harry_potter.jpg"
-    item_source_blob_name = "items/glasses1.png"
+    background_source_blob_name = "input_images/avengers.jpg"
+    item_source_blob_name = "items/glasses0.png"
 
     #bg_destination_file_name = os.path.join(BASE_DIR, "tmp/static/face_images/background_image.jpg")
     #item_destination_file_name = os.path.join(BASE_DIR, "static/items/item1.png")
 
     final_image_directory = os.path.join(BASE_DIR, "static/output_images/final.png")
-    destination_blob_name = "output_images/final_image.jpg"
+    destination_blob_name = "output_images/final_image_avengers.jpg"
     
     
     download_blob(bucket_name, background_source_blob_name,  item_source_blob_name)
@@ -140,39 +140,47 @@ def combine_tmp_images(faceAnnotations):
 
     bg = Image.open("/tmp/bg_destination_file_name")
     item = Image.open("/tmp/item_destination_file_name")
-    new_item_size = (370, 125)
 
-    lefteye = faceAnnotations['face0']['lefteye']
-
-    midpoint = faceAnnotations['face0']['midpoint']
-    rigtheye = faceAnnotations['face0']['rigtheye']
-
-    item_rotation = (rigtheye['y'] - lefteye['y'] ) / (rigtheye['x'] - lefteye['x'] )
-    eyes_vector =  (rigtheye['x'] - lefteye['x'] , rigtheye['y'] - lefteye['y'] )  # the 2d vector from left eye to right eye
-     
-    print("eyes_vector: ")
-    print(eyes_vector)
-
-    print("item.size: ")
-    print(item.size)
-
-    coef = vector_length(eyes_vector) / vector_length(item.size)
-    coef *= 10 # this constant is determined experimentally 
-    print("coef: ")
-    print(coef)
-
-    new_item_size = (int(item.size[0] * coef) , int(item.size[1] * coef)  )
-
-    print("new_item_size: ")
-    print(new_item_size)
-    #item_rotation = 20
-    item = item.resize(new_item_size).rotate(int(item_rotation), expand = True)
     back_im = bg.copy()
 
-    #faceAnnotations.x = 260
-    #faceAnnotations.y = 340
-    #faceAnnotations = jsonify(faceAnnotations)
-    back_im.paste(item, (int(midpoint['x']), int(midpoint['y'])) , item)
+    for face in faceAnnotations:
+        
+        lefteye = faceAnnotations[face]['lefteye']
 
-    back_im.show()
+        midpoint = faceAnnotations[face]['midpoint']
+        rigtheye = faceAnnotations[face]['rigtheye']
+
+        item_rotation = (rigtheye['y'] - lefteye['y'] ) / (rigtheye['x'] - lefteye['x'] )
+        eyes_vector =  (rigtheye['x'] - lefteye['x'] , rigtheye['y'] - lefteye['y'] )  # the 2d vector from left eye to right eye
+        
+        print("eyes_vector: ")
+        print(eyes_vector)
+
+        print("item.size: ")
+        print(item.size)
+
+        coef = vector_length(eyes_vector) / vector_length(item.size)
+        coef *= 2 # this constant is determined experimentally 
+        print("coef: ")
+        print(coef)
+
+        new_item_size = (int(item.size[0] * coef) , int(item.size[1] * coef)  )
+
+        print("new_item_size: ")
+        print(new_item_size)
+        #item_rotation = 20
+
+        #faceAnnotations.x = 260
+        #faceAnnotations.y = 340
+        #faceAnnotations = jsonify(faceAnnotations)
+
+
+        item = item.resize(new_item_size).rotate(int(item_rotation), expand = True)
+
+        x_coordinate = int(midpoint['x'] - item.size[0] / 2)
+        y_coordinate = int(midpoint['y'] - item.size[1] / 2)
+
+        back_im.paste(item, (x_coordinate, y_coordinate) , item)
+
+    #back_im.show()
     back_im.save("/tmp/final_image_directory.jpg", quality=95)
