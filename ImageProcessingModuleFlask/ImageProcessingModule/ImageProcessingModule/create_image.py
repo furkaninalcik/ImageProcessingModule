@@ -75,27 +75,30 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 
 
 # create() combines the background image (containing faces) with items (hats, glasses etc.)
-def create(faceAnnotations):
+def create(disguise_request):
 
-    bucket_name = "image-processing-module.appspot.com"
-    background_source_blob_name = "input_images/avengers.jpg"
-    item_source_blob_name = "items/glasses0.png"
+    upload_bucket_name = "image-processing-module.appspot.com"
+    bucket_name = disguise_request['bucket_name']
+    #background_source_blob_name = "input_images/The_Traitorous_Eight.jpeg"
+    background_source_blob_name = disguise_request['image_file_name']
+    #item_source_blob_name = "items/glasses0.png"
+    item_source_blob_name = disguise_request['faces'][0]['item_file_name']
 
     #bg_destination_file_name = os.path.join(BASE_DIR, "tmp/static/face_images/background_image.jpg")
     #item_destination_file_name = os.path.join(BASE_DIR, "static/items/item1.png")
 
     final_image_directory = os.path.join(BASE_DIR, "static/output_images/final.png")
-    destination_blob_name = "output_images/final_image_avengers.jpg"
+    destination_blob_name = "output_images/final_" + background_source_blob_name + ".jpeg"
     
     
     download_blob(bucket_name, background_source_blob_name,  item_source_blob_name)
 
 
-    combine_tmp_images(faceAnnotations)
+    combine_tmp_images(disguise_request)
 
     #combine_images(item_destination_file_name , bg_destination_file_name , final_image_directory)
 
-    upload_blob(bucket_name, final_image_directory, destination_blob_name)
+    upload_blob(upload_bucket_name, final_image_directory, destination_blob_name)
 
     return bucket_name + "/" + destination_blob_name
  
@@ -136,51 +139,61 @@ def vector_length(v):
 
 
 
-def combine_tmp_images(faceAnnotations):
+def combine_tmp_images(diguise_request):
 
     bg = Image.open("/tmp/bg_destination_file_name")
     item = Image.open("/tmp/item_destination_file_name")
 
     back_im = bg.copy()
 
-    for face in faceAnnotations:
+    
+
+
+
+
+    lefteye = diguise_request['faces'][0]['detection']['lefteye']
+    midpoint = diguise_request['faces'][0]['detection']['midpoint']
+    rigtheye = diguise_request['faces'][0]['detection']['righteye']
+
+
+    #for face in faceAnnotations:
         
-        lefteye = faceAnnotations[face]['lefteye']
+    """lefteye = faceAnnotations[face]['lefteye']
 
-        midpoint = faceAnnotations[face]['midpoint']
-        rigtheye = faceAnnotations[face]['rigtheye']
+    midpoint = faceAnnotations[face]['midpoint']
+    rigtheye = faceAnnotations[face]['rigtheye']"""
 
-        item_rotation = (rigtheye['y'] - lefteye['y'] ) / (rigtheye['x'] - lefteye['x'] )
-        eyes_vector =  (rigtheye['x'] - lefteye['x'] , rigtheye['y'] - lefteye['y'] )  # the 2d vector from left eye to right eye
-        
-        print("eyes_vector: ")
-        print(eyes_vector)
+    item_rotation = (rigtheye['y'] - lefteye['y'] ) / (rigtheye['x'] - lefteye['x'] )
+    eyes_vector =  (rigtheye['x'] - lefteye['x'] , rigtheye['y'] - lefteye['y'] )  # the 2d vector from left eye to right eye
+    
+    print("eyes_vector: ")
+    print(eyes_vector)
 
-        print("item.size: ")
-        print(item.size)
+    print("item.size: ")
+    print(item.size)
 
-        coef = vector_length(eyes_vector) / vector_length(item.size)
-        coef *= 2 # this constant is determined experimentally 
-        print("coef: ")
-        print(coef)
+    coef = vector_length(eyes_vector) / vector_length(item.size)
+    coef *= 2 # this constant is determined experimentally 
+    print("coef: ")
+    print(coef)
 
-        new_item_size = (int(item.size[0] * coef) , int(item.size[1] * coef)  )
+    new_item_size = (int(item.size[0] * coef) , int(item.size[1] * coef)  )
 
-        print("new_item_size: ")
-        print(new_item_size)
-        #item_rotation = 20
+    print("new_item_size: ")
+    print(new_item_size)
+    #item_rotation = 20
 
-        #faceAnnotations.x = 260
-        #faceAnnotations.y = 340
-        #faceAnnotations = jsonify(faceAnnotations)
+    #faceAnnotations.x = 260
+    #faceAnnotations.y = 340
+    #faceAnnotations = jsonify(faceAnnotations)
 
 
-        item = item.resize(new_item_size).rotate(int(item_rotation), expand = True)
+    item = item.resize(new_item_size).rotate(int(item_rotation), expand = True)
 
-        x_coordinate = int(midpoint['x'] - item.size[0] / 2)
-        y_coordinate = int(midpoint['y'] - item.size[1] / 2)
+    x_coordinate = int(midpoint['x'] - item.size[0] / 2)
+    y_coordinate = int(midpoint['y'] - item.size[1] / 2)
 
-        back_im.paste(item, (x_coordinate, y_coordinate) , item)
+    back_im.paste(item, (x_coordinate, y_coordinate) , item)
 
     #back_im.show()
     back_im.save("/tmp/final_image_directory.jpg", quality=95)

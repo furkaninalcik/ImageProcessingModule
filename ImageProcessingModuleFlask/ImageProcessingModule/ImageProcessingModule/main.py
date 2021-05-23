@@ -24,15 +24,7 @@ def hello():
 @app.route('/create_image', methods=['POST'])
 def image_creation():
     """Combines images"""
-    #faceAnnotations = request.args.get("faceAnnotations")
-    #faceAnnotations = request.args["faceAnnotations"]
     faceAnnotations = request.get_json()
-    #faceAnnotations = json.load(request.get_json())
-
-    #print('FACE 0 : ')
-    #print(faceAnnotations['face0'])
-
-    
 
     return  create_image.create(faceAnnotations)
     
