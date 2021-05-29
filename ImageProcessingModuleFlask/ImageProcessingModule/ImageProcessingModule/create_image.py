@@ -28,6 +28,7 @@ def download_blob(bucket_name, background_source_blob_name,  item_source_blob_na
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
+    bucketFurkan = storage_client.bucket("image-processing-module.appspot.com")
 
     # Construct a client side representation of a blob.
     # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
@@ -36,7 +37,7 @@ def download_blob(bucket_name, background_source_blob_name,  item_source_blob_na
     BG_blob = bucket.blob(background_source_blob_name)
     BG_blob.download_to_filename("/tmp/bg_destination_file_name")
 
-    item_blob = bucket.blob(item_source_blob_name)
+    item_blob = bucketFurkan.blob(item_source_blob_name)
     item_blob.download_to_filename("/tmp/item_destination_file_name")
 
     #combine_tmp_images(faceAnnotations)
@@ -100,7 +101,7 @@ def create(disguise_request):
 
     upload_blob(upload_bucket_name, final_image_directory, destination_blob_name)
 
-    return bucket_name + "/" + destination_blob_name
+    return upload_bucket_name + "/" + destination_blob_name
  
 
     # send the output image url to the manager service
@@ -146,10 +147,6 @@ def combine_tmp_images(diguise_request):
 
     back_im = bg.copy()
 
-    
-
-
-
 
     lefteye = diguise_request['faces'][0]['detection']['lefteye']
     midpoint = diguise_request['faces'][0]['detection']['midpoint']
@@ -164,6 +161,7 @@ def combine_tmp_images(diguise_request):
     rigtheye = faceAnnotations[face]['rigtheye']"""
 
     item_rotation = (rigtheye['y'] - lefteye['y'] ) / (rigtheye['x'] - lefteye['x'] )
+    item_rotation = -math.degrees(math.atan(item_rotation))
     eyes_vector =  (rigtheye['x'] - lefteye['x'] , rigtheye['y'] - lefteye['y'] )  # the 2d vector from left eye to right eye
     
     print("eyes_vector: ")
